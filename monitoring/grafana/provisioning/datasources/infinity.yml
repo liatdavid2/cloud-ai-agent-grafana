@@ -1,0 +1,12 @@
+apiVersion: 1
+
+datasources:
+  - name: Azure Cloud API
+    uid: azure-cloud-api
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    isDefault: true
+    jsonData:
+      auth_method: none
+      allowedHosts:
+        - http://api:8000

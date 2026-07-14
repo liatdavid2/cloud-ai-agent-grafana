@@ -1,0 +1,71 @@
+services:
+  data-init:
+    build: .
+    command: python scripts/download_data.py --rows ${DATASET_ROWS:-10000}
+    volumes:
+      - ./data:/app/data
+    restart: "no"
+
+  api:
+    build: .
+    command: uvicorn src.cloud_agent.api:app --host 0.0.0.0 --port 8000
+    environment:
+      DATASET_PATH: /app/data/azure_vm_usage_${DATASET_ROWS:-10000}.csv
+    volumes:
+      - ./data:/app/data:ro
+    ports:
+      - "8004:8000"
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  mcp-server:
+    build: .
+    command: python -m src.cloud_agent.mcp_server
+    environment:
+      DATASET_PATH: /app/data/azure_vm_usage_${DATASET_ROWS:-10000}.csv
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8000
+    volumes:
+      - ./data:/app/data:ro
+    ports:
+      - "8002:8000"
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  agent-api:
+    build: .
+    command: uvicorn src.cloud_agent.agent_api:app --host 0.0.0.0 --port 8003
+    environment:
+      MCP_URL: http://mcp-server:8000/mcp
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+    ports:
+      - "8003:8003"
+    depends_on:
+      - mcp-server
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: yesoreyeram-infinity-datasource
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  grafana-data:
