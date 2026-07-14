@@ -27,6 +27,7 @@ services:
       DATASET_PATH: /app/data/azure_vm_usage_${DATASET_ROWS:-10000}.csv
       MCP_HOST: 0.0.0.0
       MCP_PORT: 8000
+      MCP_TRANSPORT: ${MCP_TRANSPORT:-streamable-http}
       GRAFANA_URL: http://grafana:3000
       GRAFANA_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}

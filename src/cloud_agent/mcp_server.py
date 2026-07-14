@@ -177,4 +177,9 @@ def rename_grafana_panel(
 
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    transport = os.getenv(
+        "MCP_TRANSPORT",
+        "streamable-http",
+    )
+
+    mcp.run(transport=transport)
