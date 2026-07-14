@@ -14,7 +14,7 @@ services:
     volumes:
       - ./data:/app/data:ro
     ports:
-      - "8004:8000"
+      - "${API_HOST_PORT:-8004}:8000"
     depends_on:
       data-init:
         condition: service_completed_successfully
@@ -27,10 +27,14 @@ services:
       DATASET_PATH: /app/data/azure_vm_usage_${DATASET_ROWS:-10000}.csv
       MCP_HOST: 0.0.0.0
       MCP_PORT: 8000
+      GRAFANA_URL: http://grafana:3000
+      GRAFANA_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GRAFANA_DASHBOARD_UID: azure-cloud-ai-agent
     volumes:
       - ./data:/app/data:ro
     ports:
-      - "8002:8000"
+      - "${MCP_HOST_PORT:-8002}:8000"
     depends_on:
       data-init:
         condition: service_completed_successfully
@@ -44,7 +48,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
     ports:
-      - "8003:8003"
+      - "${AGENT_HOST_PORT:-8003}:8003"
     depends_on:
       - mcp-server
     restart: unless-stopped
@@ -56,13 +60,12 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_INSTALL_PLUGINS: yesoreyeram-infinity-datasource
-      GF_PLUGINS_PREINSTALL_DISABLED: "true"
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     ports:
-      - "3000:3000"
+      - "${GRAFANA_HOST_PORT:-3000}:3000"
     depends_on:
       - api
     restart: unless-stopped

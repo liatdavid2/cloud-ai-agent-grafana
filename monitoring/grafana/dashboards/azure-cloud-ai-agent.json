@@ -17,7 +17,7 @@
       "title": "FastAPI docs",
       "tooltip": "",
       "type": "link",
-      "url": "http://localhost:8000/docs"
+      "url": "http://localhost:8004/docs"
     }
   ],
   "panels": [
@@ -107,7 +107,14 @@
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto"
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/overview",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 2,
@@ -195,7 +202,14 @@
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto"
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/overview",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 3,
@@ -283,7 +297,14 @@
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto"
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/underutilized",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 4,
@@ -371,7 +392,14 @@
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto"
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/rightsizing",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 5,
@@ -453,7 +481,14 @@
           "placement": "bottom",
           "calcs": []
         }
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/categories",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 6,
@@ -516,7 +551,14 @@
           "countRows": false,
           "fields": ""
         }
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/deployments",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 7,
@@ -579,7 +621,14 @@
           "countRows": false,
           "fields": ""
         }
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/high-cpu",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 8,
@@ -642,7 +691,14 @@
           "countRows": false,
           "fields": ""
         }
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/underutilized",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 9,
@@ -705,7 +761,14 @@
           "countRows": false,
           "fields": ""
         }
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/rightsizing",
+          "targetBlank": true
+        }
+      ]
     },
     {
       "id": 10,
@@ -768,7 +831,14 @@
           "countRows": false,
           "fields": ""
         }
-      }
+      },
+      "links": [
+        {
+          "title": "\u2728 Explain this graph",
+          "url": "http://localhost:8003/explain/anomalies",
+          "targetBlank": true
+        }
+      ]
     }
   ],
   "refresh": "30s",
