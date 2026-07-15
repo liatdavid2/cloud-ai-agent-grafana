@@ -174,7 +174,101 @@ def rename_grafana_panel(
         "new_title": new_title,
         "grafana": result,
     }
+    
 
+@mcp.tool()
+def create_dashboard_panel(
+    title: str,
+    visualization: str,
+    api_path: str,
+    uid: str = GRAFANA_DASHBOARD_UID,
+) -> dict:
+    """
+    Create a new Grafana panel backed by an existing Analytics API endpoint.
+
+    visualization:
+      table
+      stat
+      gauge
+      timeseries
+      barchart
+      piechart
+
+    api_path example:
+      /high-cpu?threshold=70&limit=20
+    """
+
+    allowed = {
+        "table",
+        "stat",
+        "gauge",
+        "timeseries",
+        "barchart",
+        "piechart",
+    }
+
+    if visualization not in allowed:
+        raise ValueError(
+            f"visualization must be one of {sorted(allowed)}"
+        )
+
+    payload = load_dashboard(uid)
+    dashboard = payload["dashboard"]
+
+    panels = dashboard.setdefault("panels", [])
+
+    next_id = (
+        max([p.get("id", 0) for p in panels] + [0])
+        + 1
+    )
+
+    next_y = max(
+        [
+            p.get("gridPos", {}).get("y", 0)
+            + p.get("gridPos", {}).get("h", 0)
+            for p in panels
+        ]
+        + [0]
+    )
+
+    panel = {
+        "id": next_id,
+        "title": title,
+        "type": visualization,
+        "gridPos": {
+            "x": 0,
+            "y": next_y,
+            "w": 12,
+            "h": 8,
+        },
+
+        "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "infinity"
+        },
+
+        "targets": [
+            {
+                "type": "json",
+                "source": "url",
+                "url": f"http://api:8000{api_path}"
+            }
+        ]
+    }
+
+    panels.append(panel)
+
+    result = save_dashboard(
+        dashboard,
+        f"MCP created panel '{title}'",
+    )
+
+    return {
+        "status": "created",
+        "panel_id": next_id,
+        "title": title,
+        "grafana": result,
+    }
 
 if __name__ == "__main__":
     transport = os.getenv(
