@@ -1,174 +1,237 @@
-# Azure Cloud AI Agent with MCP and Grafana
+# README
 
-A portfolio project that analyzes a **real, anonymized Microsoft Azure VM workload trace** using:
+# Cloud AI Agent for Grafana
 
-- a local CSV subset of 10,000 VM records
-- FastAPI analytics endpoints
-- Grafana with the Infinity REST/JSON data source
-- an MCP server exposing cloud-analysis tools
-- an optional OpenAI Agent that calls the MCP tools
+An AI-powered cloud analytics platform that combines Grafana dashboards, FastAPI analytics, MCP (Model Context Protocol), and Claude Desktop to analyze Azure virtual machine utilization using natural language.
 
-There is **no PostgreSQL and no Prometheus**. The CSV is loaded into memory by FastAPI and the MCP server.
+The project demonstrates how an AI Agent can understand cloud infrastructure data, manipulate Grafana dashboards, create new visualizations, explain dashboards, and perform cloud capacity analysis without requiring users to know Grafana internals or API endpoints.
 
-## Architecture
+---
+# Architecture
 
 ```text
-Official Azure VM trace (.csv.gz)
-            |
-     download_data.py
-            |
-  data/azure_vm_usage_10000.csv
-        /          \
-       v            v
- FastAPI JSON     MCP Server <---- OpenAI Agent API
-       |
-       v
- Grafana Infinity datasource
+                                     +----------------------+
+                                     |   Claude Desktop     |
+                                     | Natural Language     |
+                                     +----------+-----------+
+                                                |
+                                           MCP Protocol
+                                                |
+                                                v
++----------------------------------------------------------------+
+|                     MCP Server (FastMCP)                        |
+|----------------------------------------------------------------|
+| • Cloud analytics tools                                        |
+| • Grafana dashboard tools                                      |
+| • Create / Duplicate / Rename panels                           |
+| • Change visualization                                         |
+| • Explain dashboards                                            |
++--------------------------+-------------------------------------+
+                           |
+            +--------------+----------------+
+            |                               |
+            |                               |
+            v                               v
++-------------------------+       +------------------------------+
+| Analytics REST API      |       | Grafana HTTP API             |
+| FastAPI                 |       | Dashboard Management         |
+|-------------------------|       |------------------------------|
+| /high-cpu               |       | Load Dashboard               |
+| /underutilized          |       | Save Dashboard               |
+| /rightsizing            |       | Update Panels                |
+| /deployments            |       | Rename Panels                |
+| /categories             |       | Change Visualization         |
+| /anomalies              |       +--------------+---------------+
++-------------+-----------+                      |
+              |                                  |
+              |                                  |
+              +-------------------+--------------+
+                                  |
+                                  v
+                     +--------------------------+
+                     |        Grafana           |
+                     |--------------------------|
+                     | Dashboards               |
+                     | Tables                   |
+                     | Bar Charts               |
+                     | Pie Charts               |
+                     | Time Series              |
+                     +-------------+------------+
+                                   |
+                                   |
+                                   v
+                     Azure VM Usage Dataset
+                     (Official Azure Dataset)
+                             10,000 rows
 ```
 
-## Dataset
+---
 
-The download script streams the official Azure Public Dataset V1 VM table and stops after 10,000 valid rows. It does not need to save or unpack the full trace.
+# Features
 
-Included fields:
+## Cloud Analytics API
 
-- anonymized VM, subscription, and deployment identifiers
-- VM creation and deletion times
-- average, maximum, and P95 CPU utilization
-- VM category
-- allocated cores and memory
+REST API built with FastAPI providing cloud utilization analytics.
 
-The dataset does not provide application logs, Azure region names, customer identities, or real prices. The agent instructions explicitly prohibit inventing these details.
+Available analytics include:
 
-## Start with Docker
+* High CPU virtual machines
+* Underutilized virtual machines
+* Rightsizing candidates
+* CPU anomaly detection
+* Largest deployments
+* VM category summaries
+* Overall dataset statistics
 
-1. Extract the ZIP and open a terminal in the project directory.
-2. Create the environment file:
+---
 
-Windows Command Prompt:
+## Grafana Dashboard
 
-```bat
-copy .env.example .env
+Interactive dashboard containing:
+
+* Highest Average CPU
+* Underutilized VMs
+* Rightsizing Candidates
+* Largest Deployments
+* VM Categories
+* CPU Distribution
+* Dataset Overview
+
+---
+
+## MCP Server
+
+The project exposes an MCP server that allows Claude Desktop to operate directly on Grafana.
+
+Supported operations include:
+
+* List dashboard panels
+* Rename panels
+* Change visualization
+* Duplicate panels
+* Create filtered versions of existing panels
+* Explain dashboard panels
+
+---
+
+## Natural Language Dashboard Editing
+
+Instead of manually editing Grafana, users can simply ask:
+
+> Duplicate the Highest Average CPU panel and show only the top 10 VMs.
+
+> Create a bar chart of long-running underutilized virtual machines.
+
+> Rename this panel to "Capacity Risks".
+
+> Change this visualization to a pie chart.
+
+The AI Agent translates these requests into Grafana API operations automatically.
+
+---
+
+## Explain This Graph
+
+Each dashboard panel includes an explanation endpoint.
+
+Users can request:
+
+> Explain this graph
+
+The AI Agent summarizes:
+
+* what the graph represents
+* notable patterns
+* potential operational impact
+* cloud optimization recommendations
+
+---
+
+## Technologies
+
+* Python
+* FastAPI
+* Grafana
+* Docker
+* MCP (FastMCP)
+* Claude Desktop
+* REST APIs
+* Infinity Grafana Datasource
+
+---
+
+# Dataset
+
+The project uses an official Microsoft Azure virtual machine usage dataset.
+
+The repository automatically downloads the dataset if it does not already exist.
+
+For development, a subset containing approximately 10,000 rows is used to keep startup fast while preserving realistic cloud utilization patterns.
+
+---
+
+# Architecture Components
+
+```
+Claude Desktop
+        │
+        ▼
+MCP Server
+        │
+        ├──────────────► Grafana API
+        │
+        └──────────────► Analytics API
+                                │
+                                ▼
+                      Azure VM Dataset
 ```
 
-PowerShell, macOS, or Linux:
+---
 
-```bash
-cp .env.example .env
-```
+# Example Natural Language Commands
 
-3. Add an OpenAI API key to `.env` only when you want to use the AI Agent:
+Create a new chart:
 
-```env
-OPENAI_API_KEY=your_key_here
-OPENAI_MODEL=gpt-5-mini
-```
+> Create a bar chart showing the top 10 deployments.
 
-4. Start everything:
+Duplicate an existing panel:
 
-```bash
-docker compose up --build
-```
+> Duplicate the Highest Average CPU panel and display only the top 10 results.
 
-On the first run, `data-init` downloads and creates:
+Cloud optimization:
 
-```text
-data/azure_vm_usage_10000.csv
-```
+> Show deployments with high core-hours but low average CPU.
 
-On later runs, the script detects that the file exists and skips the download.
+Dashboard editing:
 
-## Services
+> Rename the Rightsizing panel to Capacity Optimization.
 
-| Service | URL |
-|---|---|
-| Grafana | http://localhost:3000 |
-| FastAPI documentation | http://localhost:8000/docs |
-| MCP Streamable HTTP endpoint | http://localhost:8002/mcp |
-| AI Agent API documentation | http://localhost:8003/docs |
+Visualization editing:
 
-Grafana credentials:
+> Change the Largest Deployments table into a bar chart.
 
-```text
-username: admin
-password: admin
-```
+---
 
-The dashboard is provisioned automatically under the **Azure Cloud AI** folder.
+# Project Goals
 
-## Run only the dataset script
+The project demonstrates:
 
-With Python installed locally:
+* AI-powered cloud operations
+* MCP integration
+* AI-controlled Grafana dashboards
+* Natural language dashboard editing
+* Cloud resource optimization
+* Explainable dashboard analytics
 
-```bash
-pip install requests
-python scripts/download_data.py --rows 10000
-```
+---
 
-Choose a different subset size:
+# Future Improvements
 
-```bash
-python scripts/download_data.py --rows 25000
-```
+* Automatic visualization recommendation
+* AI-generated dashboards
+* Multi-dashboard support
+* Cost estimation
+* Azure Advisor recommendations
+* Cloud anomaly investigation
+* Multi-cloud support (Azure, AWS, GCP)
 
-Force a new download:
-
-```bash
-python scripts/download_data.py --rows 10000 --force
-```
-
-## Ask the AI Agent
-
-The agent works only when `OPENAI_API_KEY` is configured. Grafana, FastAPI, and MCP do not require the key.
-
-```bash
-curl -X POST http://localhost:8003/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Which VMs should be prioritized for rightsizing, and why?"}'
-```
-
-Windows Command Prompt:
-
-```bat
-curl -X POST http://localhost:8003/ask -H "Content-Type: application/json" -d "{\"question\":\"Investigate the most important cloud capacity risks.\"}"
-```
-
-Suggested questions:
-
-- Which VMs have sustained high CPU?
-- Which long-running VMs appear overprovisioned?
-- Compare utilization between VM categories.
-- What are the largest deployments by core-hours?
-- Investigate CPU anomalies and separate evidence from hypotheses.
-
-## MCP tools
-
-- `get_cloud_overview`
-- `find_overloaded_vms`
-- `find_underutilized_vms`
-- `recommend_rightsizing`
-- `detect_cpu_anomalies`
-- `summarize_vm_categories`
-- `get_largest_deployments`
-
-## Direct API examples
-
-```bash
-curl http://localhost:8000/summary
-curl "http://localhost:8000/high-cpu?threshold=80&limit=10"
-curl "http://localhost:8000/underutilized?threshold=10&limit=10"
-curl "http://localhost:8000/rightsizing?limit=10"
-curl "http://localhost:8000/anomalies?z_threshold=3&limit=10"
-```
-
-## Run tests
-
-```bash
-pytest -q
-```
-
-## Notes
-
-- The project uses rules and a z-score for transparent baseline analysis. A later version can add Isolation Forest or forecasting.
-- Rightsizing recommendations are intentionally conservative and do not claim monetary savings because real Azure pricing is not part of the trace.
-- The Grafana Infinity plugin reads the FastAPI JSON endpoints directly, so no database is needed.
