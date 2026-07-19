@@ -18,6 +18,19 @@ from .analytics import (
 from .dataset import load_dataset
 from .settings import settings
 
+from cloud_agent.advisor import (
+    advisor_summary,
+    deployment_advisor_summary,
+    generate_advisor_recommendations,
+)
+
+from cloud_agent.cost_estimator import (
+    estimate_monthly_cost,
+    estimate_vm_costs,
+    estimate_deployment_costs,
+    find_expensive_underutilized_vms,
+)
+
 frame: pd.DataFrame | None = None
 
 
@@ -100,3 +113,34 @@ def anomalies(
     limit: int = Query(20, ge=1, le=100),
 ) -> list[dict]:
     return cpu_anomalies(data(), z_threshold, limit)
+
+
+@app.get("/advisor/summary")
+def advisor():
+    return advisor_summary()
+
+
+@app.get("/advisor/deployments")
+def advisor_deployments():
+    return deployment_advisor_summary()
+
+@app.get("/advisor/recommendations")
+def advisor_recommendations():
+    return generate_advisor_recommendations()
+
+@app.get("/cost/monthly")
+def monthly():
+    return estimate_monthly_cost()
+
+
+@app.get("/cost/vms")
+def vm_cost():
+    return estimate_vm_costs()
+
+@app.get("/cost/deployments")
+def deployment_cost():
+    return estimate_deployment_costs()
+
+@app.get("/cost/underutilized")
+def expensive():
+    return find_expensive_underutilized_vms()

@@ -21,6 +21,19 @@ from .analytics import (
 from .dataset import load_dataset
 from .settings import settings
 
+from cloud_agent.advisor import (
+    advisor_summary,
+    deployment_advisor_summary,
+    generate_advisor_recommendations,
+)
+
+from cloud_agent.cost_estimator import (
+    estimate_monthly_cost,
+    estimate_vm_costs,
+    estimate_deployment_costs,
+    find_expensive_underutilized_vms,
+)
+
 frame = load_dataset(settings.dataset_path)
 
 mcp = FastMCP(
@@ -206,6 +219,7 @@ def build_dataset_url(
         url = f"{url}?{query}"
 
     return url
+
 
 
 @mcp.tool()
@@ -588,6 +602,84 @@ def create_dashboard_panel(
         "url": new_url,
         "grafana": result,
     }
+
+@mcp.tool()
+def get_advisor_summary() -> dict:
+    """
+    Return an overall cloud advisor summary.
+    """
+    return advisor_summary(frame)
+
+@mcp.tool()
+def get_deployment_advisor_summary(limit: int = 20) -> list[dict]:
+    """
+    Return deployment-level advisor recommendations.
+    """
+    return deployment_advisor_summary(frame, limit)
+
+@mcp.tool()
+def get_advisor_recommendations(limit: int = 20) -> list[dict]:
+    """
+    Return cloud optimization recommendations.
+    """
+    return generate_advisor_recommendations(frame, limit)
+
+@mcp.tool()
+def get_monthly_cost(
+    cost_per_core_hour: float,
+) -> dict:
+    """
+    Estimate the monthly cloud cost.
+    """
+    return estimate_monthly_cost(
+        frame,
+        cost_per_core_hour,
+    )
+
+@mcp.tool()
+def get_vm_costs(
+    cost_per_core_hour: float,
+    limit: int = 20,
+) -> list[dict]:
+    """
+    Estimate VM costs.
+    """
+    return estimate_vm_costs(
+        frame,
+        cost_per_core_hour,
+        limit,
+    )
+
+@mcp.tool()
+def get_deployment_costs(
+    cost_per_core_hour: float,
+    limit: int = 20,
+) -> list[dict]:
+    """
+    Estimate deployment costs.
+    """
+    return estimate_deployment_costs(
+        frame,
+        cost_per_core_hour,
+        limit,
+    )
+
+@mcp.tool()
+def find_expensive_underutilized(
+    cost_per_core_hour: float,
+    cpu_threshold: float = 10,
+    limit: int = 20,
+) -> list[dict]:
+    """
+    Find expensive VMs with low utilization.
+    """
+    return find_expensive_underutilized_vms(
+        frame,
+        cost_per_core_hour,
+        cpu_threshold,
+        limit,
+    )
+
 
 
 if __name__ == "__main__":

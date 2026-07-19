@@ -20,6 +20,19 @@ from fastapi import HTTPException
 from fastapi.responses import HTMLResponse
 from openai import AsyncOpenAI
 
+from cloud_agent.advisor import (
+    advisor_summary,
+    deployment_advisor_summary,
+    generate_advisor_recommendations,
+)
+
+from cloud_agent.cost_estimator import (
+    estimate_monthly_cost,
+    estimate_vm_costs,
+    estimate_deployment_costs,
+    find_expensive_underutilized_vms,
+)
+
 app = FastAPI(
     title="Azure Cloud AI Agent",
     version="1.1.0",
